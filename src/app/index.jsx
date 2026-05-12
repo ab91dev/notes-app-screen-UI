@@ -3,9 +3,11 @@ import React, { useEffect, useState } from "react";
 
 import {
   FlatList,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Switch,
@@ -27,6 +29,7 @@ const darkTheme = {
   subText: "#B0B0B0",
   border: "#2A2A2A",
   input: "#1A1A1A",
+  button: "#2D6CDF",
 };
 
 const lightTheme = {
@@ -36,11 +39,12 @@ const lightTheme = {
   subText: "#666666",
   border: "#E5E5E5",
   input: "#FFFFFF",
+  button: "#2D6CDF",
 };
 
 /* ------------------------------- Notes Data ------------------------------ */
 
-const notes = [
+const initialNotes = [
   {
     id: "1",
     title: "Meeting Notes",
@@ -54,34 +58,11 @@ const notes = [
     content: "Buy milk, bread, coffee, eggs, and fruits for the upcoming week.",
     date: "10 May 2026",
   },
-  {
-    id: "3",
-    title: "React Native Ideas",
-    content: "Build a weather app, expense tracker, and a notes application.",
-    date: "08 May 2026",
-  },
-  {
-    id: "4",
-    title: "Workout Plan",
-    content:
-      "Morning cardio, evening strength training, and proper stretching.",
-    date: "06 May 2026",
-  },
-  {
-    id: "5",
-    title: "Books to Read",
-    content:
-      "Atomic Habits, Deep Work, The Psychology of Money, and Clean Code.",
-    date: "02 May 2026",
-  },
-  {
-    id: "6",
-    title: "Daily Goals",
-    content:
-      "Complete React Native assignment and practice responsive layouts.",
-    date: "01 May 2026",
-  },
 ];
+
+/* -------------------------------------------------------------------------- */
+/*                                   APP                                      */
+/* -------------------------------------------------------------------------- */
 
 export default function App() {
   /* ------------------------------ System Theme ----------------------------- */
@@ -100,6 +81,16 @@ export default function App() {
 
   const [search, setSearch] = useState("");
 
+  const [notes, setNotes] = useState(initialNotes);
+
+  const [showEditor, setShowEditor] = useState(false);
+
+  const [editingNoteId, setEditingNoteId] = useState(null);
+
+  const [noteTitle, setNoteTitle] = useState("");
+
+  const [noteContent, setNoteContent] = useState("");
+
   /* --------------------------- Screen Orientation -------------------------- */
 
   useEffect(() => {
@@ -110,17 +101,66 @@ export default function App() {
     setOrientation();
   }, []);
 
+  /* --------------------------------- Theme --------------------------------- */
+
+  const theme = darkMode ? darkTheme : lightTheme;
+
   /* ----------------------------- Search Filter ----------------------------- */
 
   const filteredNotes = notes.filter((note) =>
     note.title.toLowerCase().includes(search.toLowerCase()),
   );
 
-  /* --------------------------------- Theme --------------------------------- */
+  /* ----------------------------- Save Function ----------------------------- */
 
-  const theme = darkMode ? darkTheme : lightTheme;
+  const handleSaveNote = () => {
+    if (noteTitle.trim() === "" || noteContent.trim() === "") return;
 
-  /* ----------------------- StyleSheet.compose Styles ----------------------- */
+    // Edit Existing Note
+    if (editingNoteId) {
+      const updatedNotes = notes.map((note) =>
+        note.id === editingNoteId
+          ? {
+              ...note,
+              title: noteTitle,
+              content: noteContent,
+            }
+          : note,
+      );
+
+      setNotes(updatedNotes);
+    } else {
+      // Create New Note
+      const newNote = {
+        id: Date.now().toString(),
+        title: noteTitle,
+        content: noteContent,
+        date: new Date().toLocaleDateString(),
+      };
+
+      setNotes([newNote, ...notes]);
+    }
+
+    setNoteTitle("");
+    setNoteContent("");
+    setEditingNoteId(null);
+    setShowEditor(false);
+  };
+
+  /* ---------------------------- Delete Function ---------------------------- */
+
+  const handleDeleteNote = () => {
+    const updatedNotes = notes.filter((note) => note.id !== editingNoteId);
+
+    setNotes(updatedNotes);
+
+    setNoteTitle("");
+    setNoteContent("");
+    setEditingNoteId(null);
+    setShowEditor(false);
+  };
+
+  /* ----------------------------- Theme Styles ----------------------------- */
 
   const containerStyle = StyleSheet.compose(styles.container, {
     backgroundColor: theme.background,
@@ -163,6 +203,18 @@ export default function App() {
     color: theme.subText,
   });
 
+  const editorTitleStyle = StyleSheet.compose(styles.editorTitleInput, {
+    backgroundColor: theme.input,
+    color: theme.text,
+    borderColor: theme.border,
+  });
+
+  const editorContentStyle = StyleSheet.compose(styles.editorContentInput, {
+    backgroundColor: theme.input,
+    color: theme.text,
+    borderColor: theme.border,
+  });
+
   /* ------------------------------ Render Notes ----------------------------- */
 
   const renderItem = ({ item: note }) => (
@@ -173,6 +225,12 @@ export default function App() {
           opacity: pressed ? 0.8 : 1,
         },
       ]}
+      onPress={() => {
+        setShowEditor(true);
+        setEditingNoteId(note.id);
+        setNoteTitle(note.title);
+        setNoteContent(note.content);
+      }}
     >
       <Text style={titleStyle}>{note.title}</Text>
 
@@ -183,6 +241,133 @@ export default function App() {
       <Text style={dateStyle}>{note.date}</Text>
     </Pressable>
   );
+
+  /* -------------------------------------------------------------------------- */
+  /*                              NOTE EDITOR SCREEN                            */
+  /* -------------------------------------------------------------------------- */
+
+  if (showEditor) {
+    return (
+      <SafeAreaView style={containerStyle}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <StatusBar barStyle={darkMode ? "light-content" : "dark-content"} />
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header Background */}
+            <ImageBackground
+              source={{
+                uri: "https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1200&auto=format&fit=crop",
+              }}
+              style={styles.imageBackground}
+              imageStyle={styles.imageStyle}
+            >
+              <View style={styles.overlay}>
+                <Text style={styles.editorHeading}>
+                  {editingNoteId ? "Edit Note" : "Create Note"}
+                </Text>
+
+                <Text style={styles.editorSubHeading}>
+                  Write your thoughts freely
+                </Text>
+              </View>
+            </ImageBackground>
+
+            {/* Buttons */}
+            <View style={styles.buttonRow}>
+              {/* Back Button */}
+              <Pressable
+                onPress={() => {
+                  setShowEditor(false);
+
+                  setEditingNoteId(null);
+
+                  setNoteTitle("");
+
+                  setNoteContent("");
+                }}
+                style={({ pressed }) => [
+                  styles.backButton,
+                  {
+                    backgroundColor: theme.card,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: theme.text,
+                    fontWeight: "700",
+                  }}
+                >
+                  Back
+                </Text>
+              </Pressable>
+
+              {/* Delete Button */}
+              {editingNoteId && (
+                <Pressable
+                  onPress={handleDeleteNote}
+                  style={({ pressed }) => [
+                    styles.deleteButton,
+                    {
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={styles.saveButtonText}>Delete</Text>
+                </Pressable>
+              )}
+
+              {/* Save Button */}
+              <Pressable
+                onPress={handleSaveNote}
+                style={({ pressed }) => [
+                  styles.saveButton,
+                  {
+                    backgroundColor: theme.button,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </Pressable>
+            </View>
+
+            {/* Title Input */}
+            <TextInput
+              placeholder="Note Title"
+              placeholderTextColor={theme.subText}
+              value={noteTitle}
+              onChangeText={setNoteTitle}
+              style={editorTitleStyle}
+            />
+
+            {/* Content Input */}
+            <TextInput
+              placeholder="Start writing your note..."
+              placeholderTextColor={theme.subText}
+              value={noteContent}
+              onChangeText={setNoteContent}
+              multiline
+              textAlignVertical="top"
+              style={editorContentStyle}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                              NOTES LIST SCREEN                             */
+  /* -------------------------------------------------------------------------- */
 
   return (
     <SafeAreaView style={containerStyle}>
@@ -200,7 +385,6 @@ export default function App() {
             <Text style={subHeadingStyle}>Organize your thoughts</Text>
           </View>
 
-          {/* Theme Toggle */}
           <View style={styles.switchContainer}>
             <Text style={switchTextStyle}>{darkMode ? "Dark" : "Light"}</Text>
 
@@ -208,7 +392,7 @@ export default function App() {
           </View>
         </View>
 
-        {/* Search Input */}
+        {/* Search */}
         <TextInput
           placeholder="Search notes..."
           placeholderTextColor={theme.subText}
@@ -216,6 +400,25 @@ export default function App() {
           onChangeText={setSearch}
           style={searchInputStyle}
         />
+
+        {/* Create Note Button */}
+        <Pressable
+          onPress={() => {
+            setShowEditor(true);
+            setEditingNoteId(null);
+            setNoteTitle("");
+            setNoteContent("");
+          }}
+          style={({ pressed }) => [
+            styles.createButton,
+            {
+              backgroundColor: theme.button,
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+        >
+          <Text style={styles.createButtonText}>Create New Note</Text>
+        </Pressable>
 
         {/* Notes List */}
         <FlatList
@@ -227,18 +430,6 @@ export default function App() {
           numColumns={isTablet ? 2 : 1}
           columnWrapperStyle={isTablet ? styles.columnWrapper : undefined}
           contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
-            <Text
-              style={[
-                styles.emptyText,
-                {
-                  color: theme.subText,
-                },
-              ]}
-            >
-              No notes found
-            </Text>
-          }
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -290,7 +481,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     fontSize: 16,
     fontWeight: "500",
+    marginBottom: 18,
+  },
+
+  createButton: {
+    height: 54,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 22,
+  },
+
+  createButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 
   card: {
@@ -306,7 +511,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-
     elevation: 3,
   },
 
@@ -335,10 +539,96 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  emptyText: {
+  imageBackground: {
+    height: 220,
+    justifyContent: "flex-end",
+    marginTop: 10,
+    marginBottom: 24,
+  },
+
+  imageStyle: {
+    borderRadius: 28,
+  },
+
+  overlay: {
+    backgroundColor: "rgba(0,0,0,0.35)",
+    padding: 24,
+    borderRadius: 28,
+  },
+
+  editorHeading: {
+    fontSize: 34,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
+  editorSubHeading: {
     fontSize: 16,
-    textAlign: "center",
-    marginTop: 40,
+    marginTop: 6,
     fontWeight: "500",
+    color: "#F5F5F5",
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+
+  backButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    marginRight: 10,
+  },
+
+  saveButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+
+  deleteButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+    backgroundColor: "#E53935",
+  },
+
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  editorTitleInput: {
+    height: 60,
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 20,
+  },
+
+  editorContentInput: {
+    minHeight: 320,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 18,
+    fontSize: 16,
+    lineHeight: 26,
+    marginBottom: 40,
   },
 });
