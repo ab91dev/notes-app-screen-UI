@@ -1,43 +1,46 @@
-# Notes App UI – React Native with Expo
+# Notes App UI – React Native + Expo
 
-A clean and responsive Notes App UI built using React Native and Expo with support for dark/light themes, responsive layouts, and tablet-friendly design.
+A responsive and polished Notes App built using React Native and Expo with support for dark/light themes, note creation/editing, and tablet-friendly layouts.
 
 ---
 
 ## Features
 
-- Notes listing using FlatList
+- Create, edit, and delete notes
 - Search and filter notes
-- Dark & Light mode support
-- Automatic system theme detection
-- Responsive layout for phones and tablets
-- Pressable note cards with touch feedback
-- KeyboardAvoidingView support
-- Screen orientation handling
-- Empty state handling
+- Dark/light theme toggle
+- Responsive layouts for phones and tablets
+- Pressable buttons and note cards
+- Screen orientation support using expo-screen-orientation
+- Responsive tablet grid layout
 
 ---
 
-## Technologies Used
-
-- React Native
-- Expo
-- JavaScript
-- expo-screen-orientation
-- react-native-safe-area-context
-
----
-
-## React Native Concepts Used
+## Components Used
 
 - FlatList
-- Pressable
 - TextInput
+- Pressable
 - Switch
-- SafeAreaView
 - KeyboardAvoidingView
+- ImageBackground
+- ScrollView
+- SafeAreaView
+- StatusBar
+
+---
+
+## Hooks Used
+
+- useState()
+- useEffect()
 - useColorScheme()
 - useWindowDimensions()
+
+---
+
+## Styling
+
 - StyleSheet.create()
 - StyleSheet.compose()
 
