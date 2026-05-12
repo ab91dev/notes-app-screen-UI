@@ -4,6 +4,12 @@ A responsive and polished Notes App built using React Native and Expo with suppo
 
 ---
 
+## Demo Video
+
+Add your demo video link here.
+
+---
+
 ## Features
 
 - Create, edit, and delete notes
@@ -55,11 +61,5 @@ npx expo install expo-status-bar
 npx expo install expo-screen-orientation
 npx expo start
 ```
-
----
-
-## Demo Video
-
-Add your demo video link here.
 
 ---
