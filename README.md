@@ -6,7 +6,7 @@ A responsive and polished Notes App built using React Native and Expo with suppo
 
 ## Demo Video
 
-Add your demo video link here.
+https://github.com/user-attachments/assets/2929b59e-e8c5-4d97-b346-e5f4855de9d2
 
 ---
 
